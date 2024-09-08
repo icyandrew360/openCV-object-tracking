@@ -16,11 +16,11 @@ print(f"You are currently running openCV {cv2.__version__}")
 OPENCV_OBJECT_TRACKERS = {
     "csrt": cv2.TrackerCSRT_create,
     "kcf": cv2.TrackerKCF_create,
-    "boosting": cv2.TrackerBoosting_create,
+    "boosting": cv2.legacy.TrackerBoosting_create,
     "mil": cv2.TrackerMIL_create,
-    "tld": cv2.TrackerTLD_create,
-    "medianflow": cv2.TrackerMedianFlow_create,
-    "mosse": cv2.TrackerMOSSE_create
+    "tld": cv2.legacy.TrackerTLD_create,
+    "medianflow": cv2.legacy.TrackerMedianFlow_create,
+    "mosse": cv2.legacy.TrackerMOSSE_create
 }
 # Grab the appropriate object tracker using the tracker name from dict
 selected_tracker = OPENCV_OBJECT_TRACKERS[args["tracker"]]()
@@ -57,6 +57,8 @@ while True:
     # frame.shape[1]: The width of the image.
     # frame.shape[2]: The number of color channels in the image.
     if bounding_box is not None:
+        # This update method will locate the object's new position and return
+        # a sucdcess boolean and the bounding box of the object.
         (success, box) = selected_tracker.update(frame)
 
         if success:
@@ -84,18 +86,35 @@ while True:
             cv2.putText(
                 frame, 
                 text, 
-                (10, FRAME_HEIGHT - ((i * 20) + 20)), #This is the position of the text on the frame
+                (10, FRAME_HEIGHT - ((index * 20) + 20)), #This is the position of the text on the frame
                 cv2.FONT_HERSHEY_SIMPLEX, 
                 0.6, #font size/scale
                 (0, 0, 255), 
                 2 #thickness of the text
             )
-            
+    # show the output frame
+    cv2.imshow("Frame", frame)
+    key = cv2.waitKey(1) & 0xFF
 
+    if key == ord("s"):
+        # manually select the bounding box on the frozen frame
+        bounding_box = cv2.selectROI("Frame", frame, fromCenter=False, showCrosshair=True)
+        # now initialize the OpenCV object tracker using the selected
+        # bounding box coordinates and it will try to follow object that you selected
+        selected_tracker.init(frame, bounding_box)
+        fps = FPS().start()
 
+    elif key == ord("q"):
+        break
 
+# if we are using a webcam, release the pointer:?
+if webcam:
+    video_stream.stop()
 
+# otherwise release the file pointer.
+else:
+    video_stream.release()
 
-
+cv2.destroyAllWindows()
 # When we are reading from
 
