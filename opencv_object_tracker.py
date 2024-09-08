@@ -6,6 +6,7 @@ import time
 import cv2
 
 from helpers import draw_instruction_info, draw_object_tracker_info
+from enums import OPENCV_OBJECT_TRACKERS
 
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument("-v", "--video", type=str, help="path to input video file")
@@ -14,16 +15,6 @@ arg_parser.add_argument("-t", "--tracker", type=str, default="csrt", help="OpenC
 args = vars(arg_parser.parse_args())
 
 print(f"You are currently running openCV {cv2.__version__}")
-# Because we are using OpenCV > 3.2, we must explicitly call the tracker with the correct name
-OPENCV_OBJECT_TRACKERS = {
-    "csrt": cv2.TrackerCSRT_create,
-    "kcf": cv2.TrackerKCF_create,
-    "boosting": cv2.legacy.TrackerBoosting_create,
-    "mil": cv2.TrackerMIL_create,
-    "tld": cv2.legacy.TrackerTLD_create,
-    "medianflow": cv2.legacy.TrackerMedianFlow_create,
-    "mosse": cv2.legacy.TrackerMOSSE_create
-}
 # Grab the appropriate object tracker using the tracker name from dict
 selected_tracker = OPENCV_OBJECT_TRACKERS[args["tracker"]]()
 
@@ -61,7 +52,7 @@ while True:
     draw_instruction_info(frame, erase=clear_instruction)
     if bounding_box is not None:
         # This update method will locate the object's new position and return
-        # a sucdcess boolean and the bounding box of the object.
+        # a success boolean and the bounding box of the object.
         (success, box) = selected_tracker.update(frame)
 
         if success:

@@ -1,5 +1,5 @@
-
 import cv2
+
 def draw_object_tracker_info(frame, success, fps, tracker):
     info = [
         ("Selected tracker", tracker),
