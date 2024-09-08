@@ -5,9 +5,11 @@ import argparse
 import time
 import cv2
 
+from helpers import draw_instruction_info, draw_object_tracker_info
+
 arg_parser = argparse.ArgumentParser()
 arg_parser.add_argument("-v", "--video", type=str, help="path to input video file")
-arg_parser.add_argument("-t", "--tracker", type=str, default="kcf", help="OpenCV object tracker type")
+arg_parser.add_argument("-t", "--tracker", type=str, default="csrt", help="OpenCV object tracker type")
 
 args = vars(arg_parser.parse_args())
 
@@ -40,7 +42,7 @@ else:
     video_stream = cv2.VideoCapture(args["video"])
 
 fps = None
-
+clear_instruction = False
 while True:
     frame = video_stream.read()
     frame = frame[1] if not webcam else frame
@@ -56,6 +58,7 @@ while True:
     # frame.shape[0]: The height of the image.
     # frame.shape[1]: The width of the image.
     # frame.shape[2]: The number of color channels in the image.
+    draw_instruction_info(frame, erase=clear_instruction)
     if bounding_box is not None:
         # This update method will locate the object's new position and return
         # a sucdcess boolean and the bounding box of the object.
@@ -73,30 +76,14 @@ while True:
 
         fps.update()
         fps.stop()
-
         # We will display this info on the frame
-        info = [
-            ("Selected tracker", args["tracker"]),
-            ("Success", str(success)),
-            ("FPS", "{:.2f}".format(fps.fps()))
-        ]
-
-        for (index, (key, value)) in enumerate(info):
-            text = f"{key}: {value}"
-            cv2.putText(
-                frame, 
-                text, 
-                (10, FRAME_HEIGHT - ((index * 20) + 20)), #This is the position of the text on the frame
-                cv2.FONT_HERSHEY_SIMPLEX, 
-                0.6, #font size/scale
-                (0, 0, 255), 
-                2 #thickness of the text
-            )
+        draw_object_tracker_info(frame, success, fps, args["tracker"])
     # show the output frame
     cv2.imshow("Frame", frame)
     key = cv2.waitKey(1) & 0xFF
 
     if key == ord("s"):
+        clear_instruction = True
         # manually select the bounding box on the frozen frame
         bounding_box = cv2.selectROI("Frame", frame, fromCenter=False, showCrosshair=True)
         # now initialize the OpenCV object tracker using the selected
@@ -116,5 +103,3 @@ else:
     video_stream.release()
 
 cv2.destroyAllWindows()
-# When we are reading from
-
