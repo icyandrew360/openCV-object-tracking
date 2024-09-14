@@ -14,3 +14,5 @@ Will accept the following OpenCV trackers using the --tracker flag:
 - "mosse"
 
 Default is set to csrt.
+
+After selecting the bounding box around an object you would like to track, the box will follow the selected object in real time.
